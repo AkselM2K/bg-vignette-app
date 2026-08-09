@@ -372,7 +372,7 @@ export default function VignetteWizard() {
               {(formData.vehicleCategory === 'truck' || formData.vehicleCategory === 'route_pass' || formData.vehicleCategory === 'van_heavy') && (
                 <div className="bg-slate-950 p-4 rounded-2xl border border-amber-500/30 space-y-3">
                   <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl text-[11px] text-amber-300">
-                    <strong>Notice (24-Hour Route Pass):</strong> Heavy commercial vehicles (>3.5t) operate on distance-based route passes valid for 24 hours from activation.
+                    <strong>Notice (24-Hour Route Pass):</strong> Heavy commercial vehicles (&gt;3.5t) operate on distance-based route passes valid for 24 hours from activation.
                   </div>
 
                   {/* Axle Count Selector (Point 13) */}
@@ -624,7 +624,7 @@ export default function VignetteWizard() {
                 {requiresTrailerVignette && (
                   <div className="flex justify-between border-b border-slate-900 pb-1 text-amber-400 font-semibold">
                     <span>Trailer Vignette Included:</span>
-                    <span>YES (Combined > 3.5t)</span>
+                    <span>YES (Combined &gt; 3.5t)</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-2 text-sm font-bold text-white">
