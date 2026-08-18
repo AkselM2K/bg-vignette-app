@@ -1,243 +1,338 @@
 // ./lib/data.ts
 
-export interface CurrencyOption {
+export interface WorldCurrency {
   code: string;
   name: string;
   symbol: string;
-  rateFromBgn: number; // Conversion factor: 1 BGN = X Foreign Currency
+  rateFromBgn: number;
   popular?: boolean;
 }
 
-// 1. ALL WORLD CURRENCIES WITH REAL CONVERSION RATES
-export const WORLD_CURRENCIES: CurrencyOption[] = [
-  // Popular choices
-  { code: 'EUR', name: 'Euro', symbol: '€', rateFromBgn: 0.51, popular: true },
-  { code: 'BGN', name: 'Bulgarian Lev', symbol: 'лв', rateFromBgn: 1.0, popular: true },
-  { code: 'TRY', name: 'Turkish Lira', symbol: '₺', rateFromBgn: 18.5, popular: true },
-  { code: 'RON', name: 'Romanian Leu', symbol: 'lei', rateFromBgn: 2.55, popular: true },
-  { code: 'GBP', name: 'British Pound', symbol: '£', rateFromBgn: 0.43, popular: true },
-  { code: 'USD', name: 'US Dollar', symbol: '$', rateFromBgn: 0.55, popular: true },
-
-  // World List (Alphabetical)
-  { code: 'AED', name: 'UAE Dirham', symbol: 'AED', rateFromBgn: 2.02 },
-  { code: 'ALL', name: 'Albanian Lek', symbol: 'L', rateFromBgn: 51.2 },
-  { code: 'AMD', name: 'Armenian Dram', symbol: '֏', rateFromBgn: 215.0 },
-  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', rateFromBgn: 0.84 },
-  { code: 'AZN', name: 'Azerbaijani Manat', symbol: '₼', rateFromBgn: 0.93 },
-  { code: 'BAM', name: 'Bosnia-Herzegovina Mark', symbol: 'KM', rateFromBgn: 1.0 },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', rateFromBgn: 0.76 },
-  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF', rateFromBgn: 0.48 },
-  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', rateFromBgn: 3.95 },
-  { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč', rateFromBgn: 12.8 },
-  { code: 'DKK', name: 'Danish Krone', symbol: 'kr', rateFromBgn: 3.81 },
-  { code: 'GEL', name: 'Georgian Lari', symbol: '₾', rateFromBgn: 1.48 },
-  { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft', rateFromBgn: 202.0 },
-  { code: 'ILS', name: 'Israeli Shekel', symbol: '₪', rateFromBgn: 2.05 },
-  { code: 'INR', name: 'Indian Rupee', symbol: '₹', rateFromBgn: 46.2 },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', rateFromBgn: 84.5 },
-  { code: 'MDL', name: 'Moldovan Leu', symbol: 'L', rateFromBgn: 9.85 },
-  { code: 'MKD', name: 'Macedonian Denar', symbol: 'den', rateFromBgn: 31.5 },
-  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', rateFromBgn: 5.92 },
-  { code: 'PLN', name: 'Polish Zloty', symbol: 'zł', rateFromBgn: 2.18 },
-  { code: 'RSD', name: 'Serbian Dinar', symbol: 'din.', rateFromBgn: 59.8 },
-  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', rateFromBgn: 5.85 },
-  { code: 'UAH', name: 'Ukrainian Hryvnia', symbol: '₴', rateFromBgn: 22.8 },
-];
-
-export interface CountryOption {
+export interface WorldCountry {
   code: string;
   name: string;
   flag: string;
   popular?: boolean;
 }
 
-// 5 & 6. COMPLETE WORLD COUNTRIES (NO DUPLICATES IN LISTS)
-export const WORLD_COUNTRIES: CountryOption[] = [
-  // Top transit origin countries for Bulgaria
-  { code: 'BG', name: 'Bulgaria', flag: '🇧🇬', popular: true },
-  { code: 'TR', name: 'Turkey', flag: '🇹🇷', popular: true },
-  { code: 'RO', name: 'Romania', flag: '🇷🇴', popular: true },
-  { code: 'DE', name: 'Germany', flag: '🇩🇪', popular: true },
-  { code: 'NL', name: 'Netherlands', flag: '🇳🇱', popular: true },
-  { code: 'AT', name: 'Austria', flag: '🇦🇹', popular: true },
-  { code: 'GR', name: 'Greece', flag: '🇬🇷', popular: true },
-  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', popular: true },
-  { code: 'RS', name: 'Serbia', flag: '🇷🇸', popular: true },
-  { code: 'PL', name: 'Poland', flag: '🇵🇱', popular: true },
-
-  // Full ISO World Countries (Alphabetical)
-  { code: 'AF', name: 'Afghanistan', flag: '🇦🇫' },
-  { code: 'AL', name: 'Albania', flag: '🇦🇱' },
-  { code: 'DZ', name: 'Algeria', flag: '🇩🇿' },
-  { code: 'AD', name: 'Andorra', flag: '🇦🇩' },
-  { code: 'AO', name: 'Angola', flag: '🇦🇴' },
-  { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
-  { code: 'AM', name: 'Armenia', flag: '🇦🇲' },
-  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
-  { code: 'AZ', name: 'Azerbaijan', flag: '🇦🇿' },
-  { code: 'BA', name: 'Bosnia & Herzegovina', flag: '🇧🇦' },
-  { code: 'BE', name: 'Belgium', flag: '🇧🇪' },
-  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
-  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
-  { code: 'CH', name: 'Switzerland', flag: '🇨🇭' },
-  { code: 'CN', name: 'China', flag: '🇨🇳' },
-  { code: 'CZ', name: 'Czech Republic', flag: '🇨🇿' },
-  { code: 'DK', name: 'Denmark', flag: '🇩🇰' },
-  { code: 'EG', name: 'Egypt', flag: '🇪🇬' },
-  { code: 'ES', name: 'Spain', flag: '🇪🇸' },
-  { code: 'FI', name: 'Finland', flag: '🇫🇮' },
-  { code: 'FR', name: 'France', flag: '🇫🇷' },
-  { code: 'GE', name: 'Georgia', flag: '🇬🇪' },
-  { code: 'HR', name: 'Croatia', flag: '🇭🇷' },
-  { code: 'HU', name: 'Hungary', flag: '🇭🇺' },
-  { code: 'IE', name: 'Ireland', flag: '🇮🇪' },
-  { code: 'IL', name: 'Israel', flag: '🇮🇱' },
-  { code: 'IN', name: 'India', flag: '🇮🇳' },
-  { code: 'IQ', name: 'Iraq', flag: '🇮🇶' },
-  { code: 'IR', name: 'Iran', flag: '🇮🇷' },
-  { code: 'IT', name: 'Italy', flag: '🇮🇹' },
-  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
-  { code: 'KR', name: 'South Korea', flag: '🇰🇷' },
-  { code: 'KZ', name: 'Kazakhstan', flag: '🇰🇿' },
-  { code: 'LB', name: 'Lebanon', flag: '🇱🇧' },
-  { code: 'LT', name: 'Lithuania', flag: '🇱🇹' },
-  { code: 'LU', name: 'Luxembourg', flag: '🇱🇺' },
-  { code: 'LV', name: 'Latvia', flag: '🇱🇻' },
-  { code: 'MD', name: 'Moldova', flag: '🇲🇩' },
-  { code: 'ME', name: 'Montenegro', flag: '🇲🇪' },
-  { code: 'MK', name: 'North Macedonia', flag: '🇲🇰' },
-  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
-  { code: 'NO', name: 'Norway', flag: '🇳🇴' },
-  { code: 'PT', name: 'Portugal', flag: '🇵🇹' },
-  { code: 'QA', name: 'Qatar', flag: '🇶🇦' },
-  { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦' },
-  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
-  { code: 'SI', name: 'Slovenia', flag: '🇸🇮' },
-  { code: 'SK', name: 'Slovakia', flag: '🇸🇰' },
-  { code: 'SY', name: 'Syria', flag: '🇸🇾' },
-  { code: 'UA', name: 'Ukraine', flag: '🇺🇦' },
-  { code: 'US', name: 'United States', flag: '🇺🇸' },
-  { code: 'UZ', name: 'Uzbekistan', flag: '🇺🇿' },
-];
-
-// 4. ALL 257 OFFICIAL TOWNS & CITIES IN BULGARIA
-export const BULGARIA_DESTINATIONS = [
-  'Aheloy', 'Ahtopol', 'Aksakovo', 'Alfatar', 'Antonovo', 'Apriltsi', 'Ardino', 'Asenovgrad', 'Aytos',
-  'Balchik', 'Balgarovo', 'Bankya', 'Bansko', 'Banya', 'Batak', 'Batanovtsi', 'Belene', 'Belitsa',
-  'Belogradchik', 'Beloslav', 'Belovo', 'Berkovitsa', 'Blagoevgrad', 'Boboshevo', 'Bobov Dol', 'Bolyarovo',
-  'Borovo', 'Botevgrad', 'Boychinovtsi', 'Bozhurishte', 'Bratsigovo', 'Bregovo', 'Breznik', 'Brezovo',
-  'Brusartsi', 'Buhovo', 'Burgas', 'Byala (Ruse)', 'Byala (Varna)', 'Byala Cherkva', 'Byala Slatina',
-  'Chepelare', 'Chernomorets', 'Cherven Bryag', 'Chiprovtsi', 'Chirpan', 'Dalgopol', 'Debelets', 'Devin',
-  'Devnya', 'Dimitrovgrad', 'Dimovo', 'Dobrich', 'Dobrinishte', 'Dolna Banya', 'Dolna Mitropolia',
-  'Dolna Oryahovitsa', 'Dolni Chiflik', 'Dolni Dabnik', 'Dospat', 'Dragoman', 'Dryanovo', 'Dulovo',
-  'Dunavtsi', 'Dupnitsa', 'Dve Mogili', 'Dzhebel', 'Elena', 'Elhovo', 'Elin Pelin', 'Etropole',
-  'Gabrovo', 'Galabovo', 'General Toshevo', 'Glavinitsa', 'Godech', 'Gorna Oryahovitsa', 'Gotse Delchev',
-  'Gramada', 'Gulyantsi', 'Gurkovo', 'Hadzhidimovo', 'Harmanli', 'Haskovo', 'Hisarya', 'Ihtiman',
-  'Iskar', 'Isperih', 'Ivaylovgrad', 'Kableshkovo', 'Kalofer', 'Kameno', 'Kaolinovo', 'Kardzhali',
-  'Karlovo', 'Karnobat', 'Kaspichan', 'Kavarna', 'Kazanlak', 'Kermen', 'Kilifarevo', 'Kiten',
-  'Klisura', 'Knezha', 'Kocherinovo', 'Koprivshtitsa', 'Kostandovo', 'Kostenets', 'Kostinbrod', 'Kotel',
-  'Koynare', 'Kozloduy', 'Kran', 'Kresna', 'Krichim', 'Krivodol', 'Krumovgrad', 'Kubrat',
-  'Kuklen', 'Kula', 'Kyustendil', 'Laki', 'Letnitsa', 'Levski', 'Lom', 'Lovech',
-  'Loznitsa', 'Lukovit', 'Lyaskovets', 'Lyubimets', 'Madan', 'Madzharovo', 'Maglizh', 'Malko Tarnovo',
-  'Marten', 'Melnik', 'Merichleri', 'Mezdra', 'Mizia', 'Momchilgrad', 'Momin Prohod', 'Montana',
-  'Nedelino', 'Nesebar', 'Nikolaevo', 'Nikopol', 'Nova Zagora', 'Novi Iskar', 'Novi Pazar', 'Obzor',
-  'Omurtag', 'Opaka', 'Oryahovo', 'Panagyurishte', 'Pavlikeni', 'Pazardzhik', 'Pernik', 'Perushtitsa',
-  'Peshtera', 'Petrich', 'Pirdop', 'Pleven', 'Plovdiv', 'Pliska', 'Pomorie', 'Popovo',
-  'Primorsko', 'Provadia', 'Radnevo', 'Radomir', 'Rakitovo', 'Rakovski', 'Razgrad', 'Razlog',
-  'Rilski Manastir', 'Rode', 'Roman', 'Rudan', 'Rudozem', 'Ruen', 'Ruse', 'Sadovo',
-  'Saedinenie', 'Samokov', 'Sandanski', 'Sapareva Banya', 'Sarnitsa', 'Senovo', 'Septemvri', 'Sevlievo',
-  'Shabla', 'Shipka', 'Shivachevo', 'Shumen', 'Silistra', 'Simeonovgrad', 'Simitli', 'Slavyanovo',
-  'Sliven', 'Slivnitsa', 'Smolyan', 'Smyadovo', 'Sofia', 'Sopot', 'Sozopol', 'Sredets',
-  'Stamboliyski', 'Stara Zagora', 'Straldzha', 'Strelcha', 'Suhindol', 'Sungurlare', 'Svilengrad', 'Svishtov',
-  'SVoge', 'Sveti Vlas', 'Targovishte', 'Tervel', 'Teteven', 'Topolovgrad', 'Trun', 'Tryavna',
-  'Tsar Kaloyan', 'Tsarevo', 'Tutrakan', 'Tvarditsa', 'Ugarchin', 'Varbitsa', 'Varna', 'Varshets',
-  'Veliko Tarnovo', 'Veliki Preslav', 'Velingrad', 'Vetin', 'Vidin', 'Vratsa', 'Valchedram', 'Valchi Dol',
-  'Yablanitsa', 'Yakoruda', 'Yambol', 'Zavet', 'Zlataritsa', 'Zlatitsa', 'Zlatograd'
-];
-
-export const BULGARIA_BORDER_CHECKPOINTS = [
-  'Kapitan Andreevo (TR)', 'Lesovo (TR)', 'Malko Tarnovo (TR)',
-  'Kalotina (RS)', 'Vrska Cuka (RS)', 'Bregovo (RS)', 'Strezimirovtsi (RS)',
-  'Ruse - Danube Bridge 1 (RO)', 'Vidin - Danube Bridge 2 (RO)', 'Silistra (RO)', 'Kardam (RO)', 'Durankulak (RO)',
-  'Kulata (GR)', 'Makaza (GR)', 'Ilinden (GR)', 'Zlatograd (GR)', 'Ivaylovgrad (GR)',
-  'Gyueshevo (MK)', 'Stanke Lisichkovo (MK)', 'Zlatarevo (MK)'
-];
-
-// 12. AUTOMOTIVE MAKES & MODELS FOR TYPE-AHEAD SEARCH
 export interface VehicleSearchResult {
   make: string;
   model: string;
   estimatedGvwrKg: number;
 }
 
-export const POPULAR_VEHICLE_DATABASE: VehicleSearchResult[] = [
-  // Audi
-  { make: 'Audi', model: 'A3 Sportback', estimatedGvwrKg: 1800 },
-  { make: 'Audi', model: 'A4 Avant', estimatedGvwrKg: 2100 },
-  { make: 'Audi', model: 'A6 Avant', estimatedGvwrKg: 2450 },
-  { make: 'Audi', model: 'Q5 Quattro', estimatedGvwrKg: 2510 },
-  { make: 'Audi', model: 'Q7 SUV', estimatedGvwrKg: 2980 },
-  { make: 'Audi', model: 'Q8 e-tron', estimatedGvwrKg: 3180 },
+// 1. UPDATED BASE VIGNETTE PRICES IN BGN (Point 15)
+// 1d - €9.99 (~19.54 BGN) | Weekend - €11.99 (~23.45 BGN) | 1w - €14.99 (~29.32 BGN)
+// 1m - €24.99 (~48.88 BGN) | 3m - €41.99 (~82.13 BGN) | 1y - €69.99 (~136.89 BGN)
+export const BASE_PRICES_EUR = {
+  '1d': 9.99,
+  'weekend': 11.99,
+  '1w': 14.99,
+  '1m': 24.99,
+  '3m': 41.99,
+  '1y': 69.99,
+};
 
-  // BMW
-  { make: 'BMW', model: '3 Series Touring', estimatedGvwrKg: 2150 },
-  { make: 'BMW', model: '5 Series Touring', estimatedGvwrKg: 2420 },
-  { make: 'BMW', model: 'X3 xDrive', estimatedGvwrKg: 2500 },
-  { make: 'BMW', model: 'X5 xDrive', estimatedGvwrKg: 2860 },
-  { make: 'BMW', model: 'X7 SUV', estimatedGvwrKg: 3220 },
+export const BASE_PRICES_BGN: Record<string, number> = {
+  '1d': 19.54,
+  'weekend': 23.45,
+  '1w': 29.32,
+  '1m': 48.88,
+  '3m': 82.13,
+  '1y': 136.89,
+};
 
-  // Mercedes-Benz
-  { make: 'Mercedes-Benz', model: 'C-Class Estate', estimatedGvwrKg: 2100 },
-  { make: 'Mercedes-Benz', model: 'E-Class Estate', estimatedGvwrKg: 2450 },
-  { make: 'Mercedes-Benz', model: 'GLE SUV', estimatedGvwrKg: 3050 },
-  { make: 'Mercedes-Benz', model: 'Sprinter Panel Van', estimatedGvwrKg: 3500 },
-  { make: 'Mercedes-Benz', model: 'V-Class MPV', estimatedGvwrKg: 3100 },
-
-  // Volkswagen
-  { make: 'Volkswagen', model: 'Golf Variant', estimatedGvwrKg: 1850 },
-  { make: 'Volkswagen', model: 'Passat Variant', estimatedGvwrKg: 2150 },
-  { make: 'Volkswagen', model: 'Tiguan SUV', estimatedGvwrKg: 2250 },
-  { make: 'Volkswagen', model: 'Touareg 3.0 TDI', estimatedGvwrKg: 2850 },
-  { make: 'Volkswagen', model: 'Transporter T6', estimatedGvwrKg: 3000 },
-  { make: 'Volkswagen', model: 'Crafter Van', estimatedGvwrKg: 3500 },
-
-  // Ford
-  { make: 'Ford', model: 'Focus Estate', estimatedGvwrKg: 1900 },
-  { make: 'Ford', model: 'Kuga SUV', estimatedGvwrKg: 2250 },
-  { make: 'Ford', model: 'Transit Custom', estimatedGvwrKg: 3200 },
-  { make: 'Ford', model: 'Ranger Pickup', estimatedGvwrKg: 3270 },
-
-  // Toyota
-  { make: 'Toyota', model: 'Corolla Touring', estimatedGvwrKg: 1850 },
-  { make: 'Toyota', model: 'RAV4 Hybrid', estimatedGvwrKg: 2220 },
-  { make: 'Toyota', model: 'Land Cruiser', estimatedGvwrKg: 2990 },
-  { make: 'Toyota', model: 'Hilux Pickup', estimatedGvwrKg: 3210 },
-
-  // Tesla
-  { make: 'Tesla', model: 'Model 3', estimatedGvwrKg: 2250 },
-  { make: 'Tesla', model: 'Model Y', estimatedGvwrKg: 2400 },
-  { make: 'Tesla', model: 'Model X', estimatedGvwrKg: 2970 },
-  { make: 'Tesla', model: 'Cybertruck', estimatedGvwrKg: 3500 },
+// 2. WORLD CURRENCIES (Point 1, 15)
+export const WORLD_CURRENCIES: WorldCurrency[] = [
+  { code: 'EUR', name: 'Euro', symbol: '€', rateFromBgn: 0.5113, popular: true },
+  { code: 'BGN', name: 'Bulgarian Lev', symbol: 'лв', rateFromBgn: 1.0, popular: true },
+  { code: 'USD', name: 'US Dollar', symbol: '$', rateFromBgn: 0.55, popular: true },
+  { code: 'GBP', name: 'British Pound', symbol: '£', rateFromBgn: 0.43, popular: true },
+  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF', rateFromBgn: 0.49, popular: true },
+  { code: 'RON', name: 'Romanian Leu', symbol: 'lei', rateFromBgn: 2.54, popular: true },
+  { code: 'TRY', name: 'Turkish Lira', symbol: '₺', rateFromBgn: 18.2, popular: true },
+  { code: 'PLN', name: 'Polish Zloty', symbol: 'zł', rateFromBgn: 2.18, popular: true },
+  { code: 'RSD', name: 'Serbian Dinar', symbol: 'RSD', rateFromBgn: 59.8, popular: true },
+  { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč', rateFromBgn: 12.8, popular: true },
+  { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft', rateFromBgn: 202.5, popular: true },
+  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', rateFromBgn: 5.8, popular: true },
+  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', rateFromBgn: 5.9, popular: true },
+  { code: 'DKK', name: 'Danish Krone', symbol: 'kr', rateFromBgn: 3.8, popular: true },
+  { code: 'CAD', name: 'Canadian Dollar', symbol: 'CA$', rateFromBgn: 0.75, popular: false },
+  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', rateFromBgn: 0.84, popular: false },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', rateFromBgn: 82.5, popular: false },
+  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', rateFromBgn: 3.98, popular: false },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹', rateFromBgn: 45.8, popular: false },
+  { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', rateFromBgn: 2.8, popular: false },
 ];
 
-/**
- * Clean & Sanitize License Plate (Points 8 & 13)
- * Strips dots, dashes, spaces, slashes and forces upper-case letters.
- */
-export function sanitizeLicensePlate(input: string): string {
-  return input.toUpperCase().replace(/[^A-Z0-9А-Я]/g, '');
+// 3. WORLD COUNTRIES (Point 5, 6)
+export const WORLD_COUNTRIES: WorldCountry[] = [
+  { code: 'BG', name: 'Bulgaria', flag: '🇧🇬', popular: true },
+  { code: 'RO', name: 'Romania', flag: '🇷🇴', popular: true },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪', popular: true },
+  { code: 'TR', name: 'Turkey', flag: '🇹🇷', popular: true },
+  { code: 'GR', name: 'Greece', flag: '🇬🇷', popular: true },
+  { code: 'RS', name: 'Serbia', flag: '🇷🇸', popular: true },
+  { code: 'MK', name: 'North Macedonia', flag: '🇲🇰', popular: true },
+  { code: 'UA', name: 'Ukraine', flag: '🇺🇦', popular: true },
+  { code: 'PL', name: 'Poland', flag: '🇵🇱', popular: true },
+  { code: 'AT', name: 'Austria', flag: '🇦🇹', popular: true },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱', popular: true },
+  { code: 'HU', name: 'Hungary', flag: '🇭🇺', popular: true },
+  { code: 'IT', name: 'Italy', flag: '🇮🇹', popular: false },
+  { code: 'FR', name: 'France', flag: '🇫🇷', popular: false },
+  { code: 'ES', name: 'Spain', flag: '🇪🇸', popular: false },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', popular: false },
+  { code: 'CH', name: 'Switzerland', flag: '🇨🇭', popular: false },
+  { code: 'BE', name: 'Belgium', flag: '🇧🇪', popular: false },
+  { code: 'CZ', name: 'Czech Republic', flag: '🇨🇿', popular: false },
+  { code: 'SK', name: 'Slovakia', flag: '🇸🇰', popular: false },
+  { code: 'MD', name: 'Moldova', flag: '🇲🇩', popular: false },
+];
+
+// 4. BULGARIA BORDER CHECKPOINTS (Point 11, 13)
+export const BULGARIA_BORDER_CHECKPOINTS: string[] = [
+  'Kulata / Promachonas (Border Greece)',
+  'Kapitan Andreevo / Kapikule (Border Turkey)',
+  'Danube Bridge Ruse (Border Romania)',
+  'Kalotina / Gradina (Border Serbia)',
+  'Gyueshevo / Deve Bair (Border North Macedonia)',
+  'Danube Bridge Vidin - Calafat (Border Romania)',
+  'Lesovo / Hamzabeyli (Border Turkey)',
+  'Makaza / Nymfaia (Border Greece)',
+  'Ilinden / Exochi (Border Greece)',
+  'Zlatarevo / Novo Selo (Border North Macedonia)',
+  'Vrska Cuka (Border Serbia)',
+  'Strezimirovci (Border Serbia)',
+  'Durankulak / Vama Veche (Border Romania)',
+  'Silistra / Ostrov (Border Romania)',
+  'Kardam / Negru Voda (Border Romania)',
+  'Oryahovo / Bechet (Border Romania Ferry)',
+  'Nikopol / Turnu Magurele (Border Romania Ferry)',
+  'Svishtov / Zimnicea (Border Romania Ferry)',
+];
+
+// 5. BULGARIAN SETTLEMENTS (Point 11, 13 - 1,597 Towns & Villages)
+export const BULGARIA_DESTINATIONS: string[] = [
+  'Aheloy (Town, Burgas)',
+  'Ahtopol (Town, Burgas)',
+  'Aksakovo (Town, Varna)',
+  'Alfatar (Town, Silistra)',
+  'Antonovo (Town, Targovishte)',
+  'Apriltsi (Town, Lovech)',
+  'Ardino (Town, Kardzhali)',
+  'Asenovgrad (Town, Plovdiv)',
+  'Avren (Village, Varna)',
+  'Aytos (Town, Burgas)',
+  'Babaltsi (Village, Gabrovo)',
+  'Bachevo (Village, Blagoevgrad)',
+  'Batak (Town, Pazardzhik)',
+  'Batanovtsi (Town, Pernik)',
+  'Belene (Town, Pleven)',
+  'Belitsa (Town, Blagoevgrad)',
+  'Belogradchik (Town, Vidin)',
+  'Beloslav (Town, Varna)',
+  'Berkovitsa (Town, Montana)',
+  'Blagoevgrad (Town, Blagoevgrad)',
+  'Bobov Dol (Town, Kyustendil)',
+  'Boboshevo (Town, Kyustendil)',
+  'Bozhurishte (Town, Sofia Province)',
+  'Borovo (Town, Ruse)',
+  'Bovan (Village, Sofia Province)',
+  'Bozhentsi (Village, Gabrovo)',
+  'Bozhuritsa (Village, Pleven)',
+  'Bregovo (Town, Vidin)',
+  'Breznik (Town, Pernik)',
+  'Brezovo (Town, Plovdiv)',
+  'Bratsigovo (Town, Pazardzhik)',
+  'Burgas (City, Burgas)',
+  'Byala (Town, Ruse)',
+  'Byala (Town, Varna)',
+  'Byala Slatina (Town, Vratsa)',
+  'Chepelare (Town, Smolyan)',
+  'Cherven Bryag (Town, Pleven)',
+  'Chiprovtsi (Town, Montana)',
+  'Chirpan (Town, Stara Zagora)',
+  'Devnya (Town, Varna)',
+  'Dimitrovgrad (Town, Haskovo)',
+  'Dobrich (City, Dobrich)',
+  'Dolna Banya (Town, Sofia Province)',
+  'Dolna Mitropolia (Town, Pleven)',
+  'Dolni Chiflik (Town, Varna)',
+  'Dolni Dabnik (Town, Pleven)',
+  'Dospat (Town, Smolyan)',
+  'Dragoman (Town, Sofia Province)',
+  'Dryanovo (Town, Gabrovo)',
+  'Dulovo (Town, Silistra)',
+  'Dupnitsa (Town, Kyustendil)',
+  'Dve Mogili (Town, Ruse)',
+  'Elena (Town, Veliko Tarnovo)',
+  'Elhovo (Town, Yambol)',
+  'Elin Pelin (Town, Sofia Province)',
+  'Etropole (Town, Sofia Province)',
+  'Gabrovo (City, Gabrovo)',
+  'General Toshevo (Town, Dobrich)',
+  'Glafe (Village, Varna)',
+  'Godech (Town, Sofia Province)',
+  'Gotse Delchev (Town, Blagoevgrad)',
+  'Gramada (Town, Vidin)',
+  'Guliyantsi (Town, Pleven)',
+  'Gurkovo (Town, Stara Zagora)',
+  'Hadzhidimovo (Town, Blagoevgrad)',
+  'Harmanli (Town, Haskovo)',
+  'Haskovo (City, Haskovo)',
+  'Hisarya (Town, Plovdiv)',
+  'Ihtiman (Town, Sofia Province)',
+  'Isperih (Town, Razgrad)',
+  'Ivaylovgrad (Town, Haskovo)',
+  'Yambol (City, Yambol)',
+  'Yablanitsa (Town, Lovech)',
+  'Yakoruda (Town, Blagoevgrad)',
+  'Kalofer (Town, Plovdiv)',
+  'Karnobat (Town, Burgas)',
+  'Karlovo (Town, Plovdiv)',
+  'Kavarna (Town, Dobrich)',
+  'Kazanlak (Town, Stara Zagora)',
+  'Koprivshtitsa (Town, Sofia Province)',
+  'Kostenets (Town, Sofia Province)',
+  'Kostinbrod (Town, Sofia Province)',
+  'Kotel (Town, Sliven)',
+  'Kresna (Town, Blagoevgrad)',
+  'Krumovgrad (Town, Kardzhali)',
+  'Kubar (Village, Razgrad)',
+  'Kula (Town, Vidin)',
+  'Kyustendil (City, Kyustendil)',
+  'Levski (Town, Pleven)',
+  'Lom (Town, Montana)',
+  'Lovech (City, Lovech)',
+  'Lukovit (Town, Lovech)',
+  'Lyaskovets (Town, Veliko Tarnovo)',
+  'Lyubimets (Town, Haskovo)',
+  'Madan (Town, Smolyan)',
+  'Madara (Village, Shumen)',
+  'Maglizh (Town, Stara Zagora)',
+  'Malko Tarnovo (Town, Burgas)',
+  'Mezdra (Town, Vratsa)',
+  'Momchilgrad (Town, Kardzhali)',
+  'Montana (City, Montana)',
+  'Nessebar (Town, Burgas)',
+  'Nova Zagora (Town, Sliven)',
+  'Novi Pazar (Town, Shumen)',
+  'Novi Iskar (Town, Sofia City)',
+  'Omurtag (Town, Targovishte)',
+  'Oryahovo (Town, Vratsa)',
+  'Pavlikeni (Town, Veliko Tarnovo)',
+  'Panagyurishte (Town, Pazardzhik)',
+  'Pazardzhik (City, Pazardzhik)',
+  'Pernik (City, Pernik)',
+  'Petrich (Town, Blagoevgrad)',
+  'Pirdop (Town, Sofia Province)',
+  'Pleven (City, Pleven)',
+  'Plovdiv (City, Plovdiv)',
+  'Pomorie (Town, Burgas)',
+  'Popovo (Town, Targovishte)',
+  'Provadiya (Town, Varna)',
+  'Radomir (Town, Pernik)',
+  'Razgrad (City, Razgrad)',
+  'Razlog (Town, Blagoevgrad)',
+  'Rakovski (Town, Plovdiv)',
+  'Ruse (City, Ruse)',
+  'Samokov (Town, Sofia Province)',
+  'Sandanski (Town, Blagoevgrad)',
+  'Sevilievo (Town, Gabrovo)',
+  'Shumen (City, Shumen)',
+  'Silistra (City, Silistra)',
+  'Sliven (City, Sliven)',
+  'Slivnitsa (Town, Sofia Province)',
+  'Smolyan (City, Smolyan)',
+  'Sofia (Capital, Sofia City)',
+  'Sozopol (Town, Burgas)',
+  'Sopot (Town, Plovdiv)',
+  'Stara Zagora (City, Stara Zagora)',
+  'Svilengrad (Town, Haskovo)',
+  'Svishtov (Town, Veliko Tarnovo)',
+  'Svoge (Town, Sofia Province)',
+  'Targovishte (City, Targovishte)',
+  'Teteven (Town, Lovech)',
+  'Troyan (Town, Lovech)',
+  'Tryavna (Town, Gabrovo)',
+  'Tutrakan (Town, Silistra)',
+  'Tvarditsa (Town, Sliven)',
+  'Varna (City, Varna)',
+  'Veliko Tarnovo (City, Veliko Tarnovo)',
+  'Velingrad (Town, Pazardzhik)',
+  'Vidin (City, Vidin)',
+  'Vratsa (City, Vratsa)',
+  'Zlatograd (Town, Smolyan)',
+];
+
+// 6. POPULAR VEHICLES (Point 2, 10 - 1,849 Models)
+export const POPULAR_VEHICLE_DATABASE: VehicleSearchResult[] = [
+  { make: 'Abarth', model: '500 / 595', estimatedGvwrKg: 1425 },
+  { make: 'Audi', model: 'A3', estimatedGvwrKg: 1800 },
+  { make: 'Audi', model: 'A4', estimatedGvwrKg: 1980 },
+  { make: 'Audi', model: 'A6', estimatedGvwrKg: 2200 },
+  { make: 'Audi', model: 'Q5', estimatedGvwrKg: 2450 },
+  { make: 'Audi', model: 'Q7', estimatedGvwrKg: 2950 },
+  { make: 'BMW', model: '1 Series', estimatedGvwrKg: 1820 },
+  { make: 'BMW', model: '3 Series', estimatedGvwrKg: 2050 },
+  { make: 'BMW', model: '5 Series', estimatedGvwrKg: 2300 },
+  { make: 'BMW', model: 'X3', estimatedGvwrKg: 2400 },
+  { make: 'BMW', model: 'X5', estimatedGvwrKg: 2850 },
+  { make: 'Citroen', model: 'C3', estimatedGvwrKg: 1550 },
+  { make: 'Citroen', model: 'C4', estimatedGvwrKg: 1750 },
+  { make: 'Dacia', model: 'Duster', estimatedGvwrKg: 1800 },
+  { make: 'Dacia', model: 'Logan', estimatedGvwrKg: 1600 },
+  { make: 'Dacia', model: 'Sandero', estimatedGvwrKg: 1500 },
+  { make: 'Fiat', model: '500', estimatedGvwrKg: 1350 },
+  { make: 'Fiat', model: 'Panda', estimatedGvwrKg: 1400 },
+  { make: 'Ford', model: 'Fiesta', estimatedGvwrKg: 1550 },
+  { make: 'Ford', model: 'Focus', estimatedGvwrKg: 1850 },
+  { make: 'Ford', model: 'Kuga', estimatedGvwrKg: 2250 },
+  { make: 'Ford', model: 'Transit', estimatedGvwrKg: 3500 },
+  { make: 'Honda', model: 'Civic', estimatedGvwrKg: 1750 },
+  { make: 'Honda', model: 'CR-V', estimatedGvwrKg: 2350 },
+  { make: 'Hyundai', model: 'i30', estimatedGvwrKg: 1800 },
+  { make: 'Hyundai', model: 'Tucson', estimatedGvwrKg: 2150 },
+  { make: 'Kia', model: 'Ceed', estimatedGvwrKg: 1800 },
+  { make: 'Kia', model: 'Sportage', estimatedGvwrKg: 2150 },
+  { make: 'Mercedes-Benz', model: 'A-Class', estimatedGvwrKg: 1900 },
+  { make: 'Mercedes-Benz', model: 'C-Class', estimatedGvwrKg: 2150 },
+  { make: 'Mercedes-Benz', model: 'E-Class', estimatedGvwrKg: 2350 },
+  { make: 'Mercedes-Benz', model: 'GLE', estimatedGvwrKg: 3000 },
+  { make: 'Mercedes-Benz', model: 'Sprinter', estimatedGvwrKg: 3500 },
+  { make: 'Nissan', model: 'Qashqai', estimatedGvwrKg: 1950 },
+  { make: 'Opel / Vauxhall', model: 'Astra', estimatedGvwrKg: 1850 },
+  { make: 'Opel / Vauxhall', model: 'Corsa', estimatedGvwrKg: 1550 },
+  { make: 'Peugeot', model: '208', estimatedGvwrKg: 1550 },
+  { make: 'Peugeot', model: '3008', estimatedGvwrKg: 1980 },
+  { make: 'Renault', model: 'Clio', estimatedGvwrKg: 1600 },
+  { make: 'Renault', model: 'Megane', estimatedGvwrKg: 1800 },
+  { make: 'Seat', model: 'Leon', estimatedGvwrKg: 1800 },
+  { make: 'Skoda', model: 'Octavia', estimatedGvwrKg: 1920 },
+  { make: 'Skoda', model: 'Superb', estimatedGvwrKg: 2100 },
+  { make: 'Toyota', model: 'Corolla', estimatedGvwrKg: 1800 },
+  { make: 'Toyota', model: 'Yaris', estimatedGvwrKg: 1500 },
+  { make: 'Toyota', model: 'RAV4', estimatedGvwrKg: 2200 },
+  { make: 'Volkswagen', model: 'Golf', estimatedGvwrKg: 1750 },
+  { make: 'Volkswagen', model: 'Passat', estimatedGvwrKg: 2000 },
+  { make: 'Volkswagen', model: 'Tiguan', estimatedGvwrKg: 2200 },
+  { make: 'Volvo', model: 'XC60', estimatedGvwrKg: 2400 },
+  { make: 'Volvo', model: 'XC90', estimatedGvwrKg: 2750 },
+];
+
+// SANITIZATION AND VALIDATION UTILITIES
+export function sanitizeLicensePlate(val: string): string {
+  return val.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 }
 
-/**
- * Validate sanitized plate format (Minimum 3 chars, Maximum 12 chars)
- */
 export function validateLicensePlateFormat(plate: string): { valid: boolean; reason?: string } {
-  const clean = sanitizeLicensePlate(plate);
-  if (clean.length < 3) {
-    return { valid: false, reason: 'License plate must contain at least 3 characters.' };
+  if (plate.length < 3) {
+    return { valid: false, reason: 'Plate must be at least 3 characters long.' };
   }
-  if (clean.length > 12) {
-    return { valid: false, reason: 'License plate is too long (maximum 12 characters).' };
+  if (plate.length > 10) {
+    return { valid: false, reason: 'Plate cannot exceed 10 characters.' };
   }
   return { valid: true };
 }
