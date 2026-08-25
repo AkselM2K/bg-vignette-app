@@ -4,8 +4,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   WORLD_COUNTRIES,
-  SUPPORTED_LANGUAGES,
-  TRANSLATIONS,
   POPULAR_VEHICLE_DATABASE,
   sanitizeLicensePlate,
   validateLicensePlateFormat,
@@ -13,7 +11,6 @@ import {
 
 type VignetteDuration = '1d' | 'weekend' | '1w' | '1m' | '3m' | '1y';
 
-// Point 6: Pricing in Euros
 const DURATION_PRICES_EUR: Record<VignetteDuration, number> = {
   '1d': 9.99,
   'weekend': 11.99,
@@ -23,18 +20,20 @@ const DURATION_PRICES_EUR: Record<VignetteDuration, number> = {
   '1y': 69.99,
 };
 
-const STORAGE_KEY = 'bg_vignette_draft_state_v4';
+const STORAGE_KEY = 'bg_vignette_draft_state_v5';
 
 export default function VignetteExpressWizard() {
   const [activeTab, setActiveTab] = useState<'buy' | 'check'>('buy');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('EN');
 
-  // Point 5: Blank initial values for vehicle setup
+  // Requirement 2: Manual vehicle entry toggle
+  const [isManualVehicle, setIsManualVehicle] = useState<boolean>(false);
   const [selectedMake, setSelectedMake] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('');
+  const [manualMake, setManualMake] = useState<string>('');
+  const [manualModel, setManualModel] = useState<string>('');
   const [vehicleMtm, setVehicleMtm] = useState<string>('');
 
-  // Trailer setup
+  // Trailer setup & Requirement 3: Presets
   const [hasTrailer, setHasTrailer] = useState<boolean>(false);
   const [trailerMtm, setTrailerMtm] = useState<string>('');
 
@@ -45,7 +44,7 @@ export default function VignetteExpressWizard() {
   const [trailerDuration, setTrailerDuration] = useState<VignetteDuration>('1w');
   const [trailerActivationDate, setTrailerActivationDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
 
-  // Point 10: Vehicle & Trailer registration country
+  // Country selection
   const [regCountry, setRegCountry] = useState<string>('BG');
   const [trailerRegCountry, setTrailerRegCountry] = useState<string>('BG');
 
@@ -54,7 +53,7 @@ export default function VignetteExpressWizard() {
   const [plateError, setPlateError] = useState<string>('');
   const [trailerPlateError, setTrailerPlateError] = useState<string>('');
 
-  // Point 15: Mandatory Phone & Email
+  // Contact Info
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [phoneError, setPhoneError] = useState<string>('');
@@ -63,7 +62,7 @@ export default function VignetteExpressWizard() {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Popups & confirmation dialogs
-  const [popupMessage, setPopupMessage] = useState<string | null>(null);
+  const [popupMessage, setPopupMessage] = useState<React.ReactNode | null>(null);
   const [confirmVehiclePlate, setConfirmVehiclePlate] = useState<boolean>(false);
   const [confirmTrailerPlate, setConfirmTrailerPlate] = useState<boolean>(false);
 
@@ -71,19 +70,23 @@ export default function VignetteExpressWizard() {
   const [checkPlate, setCheckPlate] = useState<string>('');
   const [checkResult, setCheckResult] = useState<string | null>(null);
 
+  // Input Refs for direct target focus (Requirement 5)
+  const vehicleMtmRef = useRef<HTMLInputElement>(null);
+  const trailerMtmRef = useRef<HTMLInputElement>(null);
   const vehiclePlateInputRef = useRef<HTMLInputElement>(null);
   const trailerPlateInputRef = useRef<HTMLInputElement>(null);
 
-  const t = TRANSLATIONS[selectedLanguage] || TRANSLATIONS['EN'];
-
-  // Point 4: localStorage persistence & auto-restore
+  // Restore local storage state
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        setIsManualVehicle(parsed.isManualVehicle || false);
         setSelectedMake(parsed.selectedMake || '');
         setSelectedModel(parsed.selectedModel || '');
+        setManualMake(parsed.manualMake || '');
+        setManualModel(parsed.manualModel || '');
         setVehicleMtm(parsed.vehicleMtm || '');
         setHasTrailer(parsed.hasTrailer || false);
         setTrailerMtm(parsed.trailerMtm || '');
@@ -97,17 +100,20 @@ export default function VignetteExpressWizard() {
         setTrailerPlate(parsed.trailerPlate || '');
         setEmail(parsed.email || '');
         setPhone(parsed.phone || '');
-        setSelectedLanguage(parsed.selectedLanguage || 'EN');
       } catch (e) {
         console.error('Failed to load local storage state:', e);
       }
     }
   }, []);
 
+  // Save local storage state
   useEffect(() => {
     const stateToSave = {
+      isManualVehicle,
       selectedMake,
       selectedModel,
+      manualMake,
+      manualModel,
       vehicleMtm,
       hasTrailer,
       trailerMtm,
@@ -121,12 +127,14 @@ export default function VignetteExpressWizard() {
       trailerPlate,
       email,
       phone,
-      selectedLanguage,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
   }, [
+    isManualVehicle,
     selectedMake,
     selectedModel,
+    manualMake,
+    manualModel,
     vehicleMtm,
     hasTrailer,
     trailerMtm,
@@ -140,16 +148,14 @@ export default function VignetteExpressWizard() {
     trailerPlate,
     email,
     phone,
-    selectedLanguage,
   ]);
 
-  // Point 9: Auto scroll to top on step changes
   const changeStep = (step: number) => {
     setCurrentStep(step);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Date range constraints (Today to +30 Days Max)
+  // Requirement 6: Date constraints & Friday-only generator for weekend vignettes
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const maxDateStr = useMemo(() => {
     const d = new Date();
@@ -157,7 +163,40 @@ export default function VignetteExpressWizard() {
     return d.toISOString().split('T')[0];
   }, []);
 
-  // Weight Calculations
+  const availableFridays = useMemo(() => {
+    const fridays: string[] = [];
+    const today = new Date();
+    const endDate = new Date();
+    endDate.setDate(today.getDate() + 30);
+
+    const curr = new Date(today);
+    while (curr <= endDate) {
+      if (curr.getDay() === 5) { // 5 = Friday
+        fridays.push(curr.toISOString().split('T')[0]);
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    return fridays;
+  }, []);
+
+  // Ensure weekend duration stays aligned with valid Friday
+  useEffect(() => {
+    if (duration === 'weekend' && availableFridays.length > 0) {
+      if (!availableFridays.includes(activationDate)) {
+        setActivationDate(availableFridays[0]);
+      }
+    }
+  }, [duration, availableFridays, activationDate]);
+
+  useEffect(() => {
+    if (trailerDuration === 'weekend' && availableFridays.length > 0) {
+      if (!availableFridays.includes(trailerActivationDate)) {
+        setTrailerActivationDate(availableFridays[0]);
+      }
+    }
+  }, [trailerDuration, availableFridays, trailerActivationDate]);
+
+  // Weight Calculations & Calculation Banner (Requirement 4)
   const vehicleMtmKg = parseInt(vehicleMtm, 10) || 0;
   const trailerMtmKg = hasTrailer ? parseInt(trailerMtm, 10) || 0 : 0;
   const totalCombinedWeightKg = vehicleMtmKg + trailerMtmKg;
@@ -168,13 +207,14 @@ export default function VignetteExpressWizard() {
   const secondaryTrailerEur = requiresTrailerVignette ? DURATION_PRICES_EUR[trailerDuration] || 14.99 : 0;
   const totalEur = (mainVignetteEur + secondaryTrailerEur).toFixed(2);
 
-  const availableModels = useMemo(() => {
-    return POPULAR_VEHICLE_DATABASE.filter((v) => v.make === selectedMake);
-  }, [selectedMake]);
-
+  // Vehicle Database Derived Lists
   const uniqueMakes = useMemo(() => {
     return Array.from(new Set(POPULAR_VEHICLE_DATABASE.map((v) => v.make))).sort();
   }, []);
+
+  const availableModels = useMemo(() => {
+    return POPULAR_VEHICLE_DATABASE.filter((v) => v.make === selectedMake);
+  }, [selectedMake]);
 
   const handleMakeChange = (make: string) => {
     setSelectedMake(make);
@@ -190,13 +230,43 @@ export default function VignetteExpressWizard() {
     }
   };
 
+  const toggleManualVehicleMode = () => {
+    if (isManualVehicle) {
+      setIsManualVehicle(false);
+      setManualMake('');
+      setManualModel('');
+    } else {
+      setIsManualVehicle(true);
+      setSelectedMake('');
+      setSelectedModel('');
+    }
+    setVehicleMtm('');
+  };
+
+  // Requirement 5: Highlight missing MTM & auto-focus directly to textbox
   const handleStep1Next = () => {
     if (vehicleMtmKg < 350) {
-      setPopupMessage('Please enter a valid vehicle MTM weight.');
+      setPopupMessage(
+        <span>
+          Please enter a valid <strong className="text-amber-400 font-bold underline">VEHICLE MTM weight</strong> (minimum 350 kg).
+        </span>
+      );
+      setTimeout(() => {
+        vehicleMtmRef.current?.focus();
+        vehicleMtmRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
       return;
     }
     if (hasTrailer && trailerMtmKg < 350) {
-      setPopupMessage('Please enter a valid trailer MTM weight.');
+      setPopupMessage(
+        <span>
+          Please enter a valid <strong className="text-amber-400 font-bold underline">TRAILER MTM weight</strong> (minimum 350 kg).
+        </span>
+      );
+      setTimeout(() => {
+        trailerMtmRef.current?.focus();
+        trailerMtmRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
       return;
     }
     changeStep(2);
@@ -221,10 +291,9 @@ export default function VignetteExpressWizard() {
       setTrailerPlateError('');
     }
 
-    // Point 15: Phone Validation
     const cleanPhone = phone.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 5) {
-      setPhoneError('Please check your phone number. It must contain at least 5 digits.');
+      setPhoneError('Please check your phone number. Start with country code, e.g. 00359...');
       return;
     }
     setPhoneError('');
@@ -279,13 +348,13 @@ export default function VignetteExpressWizard() {
               onClick={() => setPopupMessage(null)}
               className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition"
             >
-              Understand & Review
+              Understand & Edit Weight
             </button>
           </div>
         </div>
       )}
 
-      {/* Point 11: Vehicle Plate Confirmation Modal with Highlighted Words */}
+      {/* Confirmation Modals */}
       {confirmVehiclePlate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="bg-slate-900 border border-emerald-500/50 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
@@ -315,7 +384,6 @@ export default function VignetteExpressWizard() {
         </div>
       )}
 
-      {/* Point 11: Trailer Plate Confirmation Modal with Highlighted Words */}
       {confirmTrailerPlate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="bg-slate-900 border border-emerald-500/50 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
@@ -345,53 +413,41 @@ export default function VignetteExpressWizard() {
         </div>
       )}
 
-      {/* Compact Header Section (Point 1 & Post-prompt change) */}
+      {/* Requirement 1: Header strictly containing only Buy & Check options (No language dropdown on top) */}
       <header className="border-b border-slate-800 bg-slate-900/80 sticky top-0 backdrop-blur-md z-30">
         <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
-          {/* Main Top Navigation Tabs */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('buy')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
                 activeTab === 'buy'
-                  ? 'bg-emerald-500 text-slate-950'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }`}
             >
-              {t.buyVignette}
+              Buy eVignette
             </button>
             <button
               onClick={() => setActiveTab('check')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
                 activeTab === 'check'
-                  ? 'bg-emerald-500 text-slate-950'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }`}
             >
-              {t.checkVignette}
+              Check eVignette
             </button>
           </div>
-
-          {/* Point 3: Optimized Language Selector */}
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium"
-          >
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.popular ? `⭐ ${lang.name}` : lang.name}
-              </option>
-            ))}
-          </select>
+          <div className="text-xs font-semibold text-slate-500">
+            Official Bulgarian e-Vignette System
+          </div>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Check Vignette Tab Content */}
         {activeTab === 'check' ? (
           <div className="space-y-6 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
-            <h2 className="text-xl font-bold text-white mb-2">{t.checkVignette}</h2>
+            <h2 className="text-xl font-bold text-white mb-2">Check eVignette</h2>
             <p className="text-xs text-slate-400">Enter your license plate to verify active Bulgarian e-vignette validity free of charge.</p>
             <form onSubmit={handleCheckVignetteSubmit} className="space-y-4">
               <div>
@@ -408,7 +464,7 @@ export default function VignetteExpressWizard() {
                 type="submit"
                 className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-2xl transition"
               >
-                Check Vignette
+                Check Vignette Status
               </button>
             </form>
             {checkResult && (
@@ -418,15 +474,14 @@ export default function VignetteExpressWizard() {
             )}
           </div>
         ) : (
-          /* Buy e-Vignette Flow */
           <>
             {/* Wizard Steps Navigation Bar */}
             <div className="mb-6 bg-slate-900 border border-slate-800 rounded-2xl p-3 flex justify-between items-center text-xs font-semibold">
               {[
-                { num: 1, label: t.vehicleSetup },
-                { num: 2, label: t.validityDuration },
-                { num: 3, label: t.plateDetails },
-                { num: 4, label: t.checkout },
+                { num: 1, label: 'Vehicle Setup' },
+                { num: 2, label: 'Validity Duration' },
+                { num: 3, label: 'Plate Details' },
+                { num: 4, label: 'Checkout' },
               ].map((s) => (
                 <div
                   key={s.num}
@@ -454,53 +509,91 @@ export default function VignetteExpressWizard() {
             {currentStep === 1 && (
               <div className="space-y-6 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">{t.vehicleSetup}</h2>
-                  <p className="text-xs text-slate-400">Configure vehicle weight specs for calculation.</p>
+                  <h2 className="text-xl font-bold text-white mb-1">Vehicle Setup</h2>
+                  <p className="text-xs text-slate-400">Configure vehicle & trailer weight specs.</p>
                 </div>
 
-                {/* Point 5: Blank Dropdowns */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">{t.selectMake}</label>
-                    <select
-                      value={selectedMake}
-                      onChange={(e) => handleMakeChange(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    >
-                      <option value="">-- Choose Make --</option>
-                      {uniqueMakes.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Requirement 2: Dropdowns vs Manual Input switch */}
+                {!isManualVehicle ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Select Make</label>
+                      <select
+                        value={selectedMake}
+                        onChange={(e) => handleMakeChange(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="">-- Choose Make --</option>
+                        {uniqueMakes.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">{t.selectModel}</label>
-                    <select
-                      value={selectedModel}
-                      onChange={(e) => handleModelChange(e.target.value)}
-                      disabled={!selectedMake}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 disabled:opacity-50"
-                    >
-                      <option value="">-- Choose Model --</option>
-                      {availableModels.map((m) => (
-                        <option key={m.model} value={m.model}>
-                          {m.model} (Est. {m.estimatedGvwrKg} kg)
-                        </option>
-                      ))}
-                    </select>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Select Model</label>
+                      <select
+                        value={selectedModel}
+                        onChange={(e) => handleModelChange(e.target.value)}
+                        disabled={!selectedMake}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 disabled:opacity-50"
+                      >
+                        <option value="">-- Choose Model --</option>
+                        {availableModels.map((m) => (
+                          <option key={m.model} value={m.model}>
+                            {m.model} (Est. {m.estimatedGvwrKg} kg)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Enter Make</label>
+                      <input
+                        type="text"
+                        value={manualMake}
+                        onChange={(e) => setManualMake(e.target.value)}
+                        placeholder="e.g. BMW, Ford..."
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Enter Model</label>
+                      <input
+                        type="text"
+                        value={manualModel}
+                        onChange={(e) => setManualModel(e.target.value)}
+                        placeholder="e.g. 3 Series, Focus..."
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Requirement 2: Toggle Link underneath make & model */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={toggleManualVehicleMode}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 underline font-semibold transition"
+                  >
+                    {isManualVehicle ? 'Choose vehicle make and model from list' : 'Could not find vehicle model?'}
+                  </button>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">{t.vehicleMtm}</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Vehicle Estimate MTM Weight (kg)</label>
                   <input
+                    ref={vehicleMtmRef}
                     type="number"
                     value={vehicleMtm}
                     onChange={(e) => setVehicleMtm(e.target.value)}
-                    placeholder="Enter weight in kg"
+                    placeholder="Enter vehicle MTM in kg"
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -509,7 +602,7 @@ export default function VignetteExpressWizard() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-white">{t.attachTrailer}</h3>
+                    <h3 className="text-sm font-bold text-white">Attach Trailer / Caravan</h3>
                   </div>
                   <button
                     type="button"
@@ -527,15 +620,65 @@ export default function VignetteExpressWizard() {
                 </div>
 
                 {hasTrailer && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">{t.trailerMtm}</label>
-                    <input
-                      type="number"
-                      value={trailerMtm}
-                      onChange={(e) => setTrailerMtm(e.target.value)}
-                      placeholder="Enter trailer MTM weight in kg"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    />
+                  <div className="space-y-3">
+                    {/* Requirement 3: Quick select trailer options */}
+                    <label className="block text-xs font-semibold text-slate-300">Quick Select Trailer Preset</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: 'Small Trailer', weight: '750' },
+                        { label: 'Medium Trailer', weight: '2000' },
+                        { label: 'Big Trailer', weight: '3500' },
+                      ].map((preset) => (
+                        <button
+                          key={preset.weight}
+                          type="button"
+                          onClick={() => setTrailerMtm(preset.weight)}
+                          className={`py-2 px-1 text-center rounded-xl border text-xs font-semibold transition ${
+                            trailerMtm === preset.weight
+                              ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
+                              : 'border-slate-800 bg-slate-800/50 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <div>{preset.label}</div>
+                          <div className="text-slate-300">{preset.weight} kg</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Trailer Estimate MTM Weight (kg)</label>
+                      <input
+                        ref={trailerMtmRef}
+                        type="number"
+                        value={trailerMtm}
+                        onChange={(e) => setTrailerMtm(e.target.value)}
+                        placeholder="Enter trailer MTM weight in kg"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Requirement 4: Calculation display banner */}
+                {hasTrailer && (vehicleMtmKg > 0 || trailerMtmKg > 0) && (
+                  <div className={`p-4 rounded-2xl border text-xs space-y-1.5 transition ${
+                    requiresTrailerVignette 
+                      ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' 
+                      : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
+                  }`}>
+                    <div className="flex justify-between font-semibold">
+                      <span>Vehicle MTM ({vehicleMtmKg} kg) + Trailer MTM ({trailerMtmKg} kg):</span>
+                      <strong className="text-white font-mono text-sm">{totalCombinedWeightKg} kg</strong>
+                    </div>
+                    {requiresTrailerVignette ? (
+                      <p className="text-amber-300">
+                        ⚠️ Total combined weight exceeds <strong>3,500 kg</strong>. A separate trailer vignette is <strong>REQUIRED</strong>.
+                      </p>
+                    ) : (
+                      <p className="text-emerald-300">
+                        ✅ Total combined weight does not exceed 3,500 kg. No separate trailer vignette is required.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -543,7 +686,7 @@ export default function VignetteExpressWizard() {
                   onClick={handleStep1Next}
                   className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-2xl transition"
                 >
-                  {t.nextStep}
+                  Next Step
                 </button>
               </div>
             )}
@@ -552,10 +695,9 @@ export default function VignetteExpressWizard() {
             {currentStep === 2 && (
               <div className="space-y-6 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">{t.validityDuration}</h2>
+                  <h2 className="text-xl font-bold text-white mb-1">Validity Duration</h2>
                 </div>
 
-                {/* Point 6 & 7: Updated Durations & Prices */}
                 <div className="space-y-3">
                   <label className="block text-xs font-semibold text-slate-300">Vehicle Vignette Duration</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -583,27 +725,39 @@ export default function VignetteExpressWizard() {
                     ))}
                   </div>
 
-                  {duration === 'weekend' && (
-                    <p className="text-xs text-amber-400 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
-                      {t.weekendNote}
-                    </p>
-                  )}
-
-                  {/* Point 8: Vehicle Activation Start Date strictly underneath vehicle options */}
+                  {/* Requirement 6: Weekend strict Friday picker */}
                   <div className="pt-2">
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Vehicle Activation Start Date</label>
-                    <input
-                      type="date"
-                      min={todayStr}
-                      max={maxDateStr}
-                      value={activationDate}
-                      onChange={(e) => setActivationDate(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    />
+                    {duration === 'weekend' ? (
+                      <div>
+                        <select
+                          value={activationDate}
+                          onChange={(e) => setActivationDate(e.target.value)}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        >
+                          {availableFridays.map((friDate) => (
+                            <option key={friDate} value={friDate}>
+                              Friday, {friDate} (Valid Friday 12:00 to Sunday 23:59)
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-amber-400 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 mt-2">
+                          Weekend vignettes are valid strictly from Friday 12:00 to Sunday 23:59. Only Fridays within 30 days are selectable.
+                        </p>
+                      </div>
+                    ) : (
+                      <input
+                        type="date"
+                        min={todayStr}
+                        max={maxDateStr}
+                        value={activationDate}
+                        onChange={(e) => setActivationDate(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    )}
                   </div>
                 </div>
 
-                {/* Point 8: Trailer Vignette Duration & Date selection */}
                 {requiresTrailerVignette && (
                   <div className="space-y-3 pt-4 border-t border-slate-800">
                     <label className="block text-xs font-semibold text-amber-400">
@@ -636,14 +790,28 @@ export default function VignetteExpressWizard() {
 
                     <div className="pt-2">
                       <label className="block text-xs font-semibold text-slate-300 mb-1">Trailer Activation Start Date</label>
-                      <input
-                        type="date"
-                        min={todayStr}
-                        max={maxDateStr}
-                        value={trailerActivationDate}
-                        onChange={(e) => setTrailerActivationDate(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-                      />
+                      {trailerDuration === 'weekend' ? (
+                        <select
+                          value={trailerActivationDate}
+                          onChange={(e) => setTrailerActivationDate(e.target.value)}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        >
+                          {availableFridays.map((friDate) => (
+                            <option key={friDate} value={friDate}>
+                              Friday, {friDate} (Valid Friday 12:00 to Sunday 23:59)
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="date"
+                          min={todayStr}
+                          max={maxDateStr}
+                          value={trailerActivationDate}
+                          onChange={(e) => setTrailerActivationDate(e.target.value)}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -653,13 +821,13 @@ export default function VignetteExpressWizard() {
                     onClick={() => changeStep(1)}
                     className="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-2xl border border-slate-700 transition"
                   >
-                    {t.back}
+                    Back
                   </button>
                   <button
                     onClick={() => changeStep(3)}
                     className="flex-1 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-2xl transition"
                   >
-                    {t.nextStep}
+                    Next Step
                   </button>
                 </div>
               </div>
@@ -669,9 +837,10 @@ export default function VignetteExpressWizard() {
             {currentStep === 3 && (
               <div className="space-y-6 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">{t.plateDetails}</h2>
+                  <h2 className="text-xl font-bold text-white mb-1">Registration & Details</h2>
                 </div>
 
+                {/* Requirement 7: Updated full country list */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Vehicle Registration Country</label>
                   <select
@@ -700,7 +869,6 @@ export default function VignetteExpressWizard() {
                   {plateError && <p className="text-xs text-rose-400 mt-1">{plateError}</p>}
                 </div>
 
-                {/* Point 10: Trailer Country Option added */}
                 {hasTrailer && (
                   <>
                     <hr className="border-slate-800" />
@@ -736,9 +904,8 @@ export default function VignetteExpressWizard() {
 
                 <hr className="border-slate-800" />
 
-                {/* Point 15 & Post-prompt change: Mandatory Email & Numeric Phone */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">{t.email} *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Email Address *</label>
                   <input
                     type="email"
                     value={email}
@@ -748,15 +915,17 @@ export default function VignetteExpressWizard() {
                   />
                 </div>
 
+                {/* Requirement 8: Updated phone number text */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">{t.phone} (Numbers only) *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
                   <input
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    placeholder="e.g. 00359881234567"
+                    placeholder="Start with country code e.g. 00359..."
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
                   />
+                  <p className="text-[11px] text-slate-400 mt-1">Please start with your country code (e.g. 00359... or 0049...).</p>
                   {phoneError && <p className="text-xs text-rose-400 mt-1">{phoneError}</p>}
                 </div>
 
@@ -765,13 +934,13 @@ export default function VignetteExpressWizard() {
                     onClick={() => changeStep(2)}
                     className="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-2xl border border-slate-700 transition"
                   >
-                    {t.back}
+                    Back
                   </button>
                   <button
                     onClick={handleStep3Next}
                     className="flex-1 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-2xl transition"
                   >
-                    {t.nextStep}
+                    Next Step
                   </button>
                 </div>
               </div>
@@ -781,27 +950,47 @@ export default function VignetteExpressWizard() {
             {currentStep === 4 && (
               <div className="space-y-6 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">{t.checkout}</h2>
+                  <h2 className="text-xl font-bold text-white mb-1">Checkout & Review</h2>
                 </div>
 
-                <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-300">
+                {/* Requirement 9: Separate lines for dates & individual rows for Email and Phone */}
+                <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center text-slate-300">
                     <span>Vehicle Plate:</span>
-                    <strong className="text-emerald-400 font-mono">{sanitizeLicensePlate(licensePlate)} ({regCountry})</strong>
+                    <strong className="text-emerald-400 font-mono text-sm">{sanitizeLicensePlate(licensePlate)} ({regCountry})</strong>
                   </div>
+                  
                   {hasTrailer && (
-                    <div className="flex justify-between text-slate-300">
+                    <div className="flex justify-between items-center text-slate-300">
                       <span>Trailer Plate:</span>
-                      <strong className="text-emerald-400 font-mono">{sanitizeLicensePlate(trailerPlate)} ({trailerRegCountry})</strong>
+                      <strong className="text-emerald-400 font-mono text-sm">{sanitizeLicensePlate(trailerPlate)} ({trailerRegCountry})</strong>
                     </div>
                   )}
-                  <div className="flex justify-between text-slate-300">
-                    <span>Activation Date:</span>
-                    <strong className="text-white">{activationDate}</strong>
+
+                  <hr className="border-slate-700/60 my-1" />
+
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Vehicle Activation Date:</span>
+                    <strong className="text-white">{activationDate || 'Not filled in'}</strong>
                   </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>Contact Info:</span>
-                    <strong className="text-white">{email} | {phone}</strong>
+
+                  {requiresTrailerVignette && (
+                    <div className="flex justify-between items-center text-slate-300">
+                      <span>Trailer Activation Date:</span>
+                      <strong className="text-amber-400">{trailerActivationDate || 'Not filled in'}</strong>
+                    </div>
+                  )}
+
+                  <hr className="border-slate-700/60 my-1" />
+
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Email Address:</span>
+                    <strong className="text-white">{email.trim() !== '' ? email : 'Not filled in'}</strong>
+                  </div>
+
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Phone Number:</span>
+                    <strong className="text-white">{phone.trim() !== '' ? phone : 'Not filled in'}</strong>
                   </div>
                 </div>
 
@@ -815,7 +1004,7 @@ export default function VignetteExpressWizard() {
                     onClick={() => changeStep(3)}
                     className="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-2xl border border-slate-700 transition"
                   >
-                    {t.back}
+                    Back
                   </button>
                   <button
                     onClick={() => alert('Vignette order placed successfully!')}
