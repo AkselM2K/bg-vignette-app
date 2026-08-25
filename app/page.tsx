@@ -25,7 +25,7 @@ const STORAGE_KEY = 'bg_vignette_draft_state_v5';
 export default function VignetteExpressWizard() {
   const [activeTab, setActiveTab] = useState<'buy' | 'check'>('buy');
 
-  // Requirement 2: Manual vehicle entry toggle
+  // Manual vehicle entry toggle
   const [isManualVehicle, setIsManualVehicle] = useState<boolean>(false);
   const [selectedMake, setSelectedMake] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('');
@@ -33,7 +33,7 @@ export default function VignetteExpressWizard() {
   const [manualModel, setManualModel] = useState<string>('');
   const [vehicleMtm, setVehicleMtm] = useState<string>('');
 
-  // Trailer setup & Requirement 3: Presets
+  // Trailer setup & Presets
   const [hasTrailer, setHasTrailer] = useState<boolean>(false);
   const [trailerMtm, setTrailerMtm] = useState<string>('');
 
@@ -63,6 +63,8 @@ export default function VignetteExpressWizard() {
 
   // Popups & confirmation dialogs
   const [popupMessage, setPopupMessage] = useState<React.ReactNode | null>(null);
+  const [targetFocusRef, setTargetFocusRef] = useState<React.RefObject<HTMLInputElement | null> | null>(null);
+  // const [targetFocusRef, setTargetFocusRef] = useState<React.RefObject<HTMLInputElement> | null>(null);
   const [confirmVehiclePlate, setConfirmVehiclePlate] = useState<boolean>(false);
   const [confirmTrailerPlate, setConfirmTrailerPlate] = useState<boolean>(false);
 
@@ -70,7 +72,7 @@ export default function VignetteExpressWizard() {
   const [checkPlate, setCheckPlate] = useState<string>('');
   const [checkResult, setCheckResult] = useState<string | null>(null);
 
-  // Input Refs for direct target focus (Requirement 5)
+  // Input Refs for direct target focus
   const vehicleMtmRef = useRef<HTMLInputElement>(null);
   const trailerMtmRef = useRef<HTMLInputElement>(null);
   const vehiclePlateInputRef = useRef<HTMLInputElement>(null);
@@ -155,7 +157,7 @@ export default function VignetteExpressWizard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Requirement 6: Date constraints & Friday-only generator for weekend vignettes
+  // Date constraints & Friday-only generator for weekend vignettes
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const maxDateStr = useMemo(() => {
     const d = new Date();
@@ -196,7 +198,7 @@ export default function VignetteExpressWizard() {
     }
   }, [trailerDuration, availableFridays, trailerActivationDate]);
 
-  // Weight Calculations & Calculation Banner (Requirement 4)
+  // Weight Calculations
   const vehicleMtmKg = parseInt(vehicleMtm, 10) || 0;
   const trailerMtmKg = hasTrailer ? parseInt(trailerMtm, 10) || 0 : 0;
   const totalCombinedWeightKg = vehicleMtmKg + trailerMtmKg;
@@ -243,7 +245,7 @@ export default function VignetteExpressWizard() {
     setVehicleMtm('');
   };
 
-  // Requirement 5: Highlight missing MTM & auto-focus directly to textbox
+  // Step 1 validation with modal confirmation before focus switch
   const handleStep1Next = () => {
     if (vehicleMtmKg < 350) {
       setPopupMessage(
@@ -251,10 +253,7 @@ export default function VignetteExpressWizard() {
           Please enter a valid <strong className="text-amber-400 font-bold underline">VEHICLE MTM weight</strong> (minimum 350 kg).
         </span>
       );
-      setTimeout(() => {
-        vehicleMtmRef.current?.focus();
-        vehicleMtmRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
+      setTargetFocusRef(vehicleMtmRef);
       return;
     }
     if (hasTrailer && trailerMtmKg < 350) {
@@ -263,13 +262,19 @@ export default function VignetteExpressWizard() {
           Please enter a valid <strong className="text-amber-400 font-bold underline">TRAILER MTM weight</strong> (minimum 350 kg).
         </span>
       );
-      setTimeout(() => {
-        trailerMtmRef.current?.focus();
-        trailerMtmRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
+      setTargetFocusRef(trailerMtmRef);
       return;
     }
     changeStep(2);
+  };
+
+  const handleUnderstandAndEdit = () => {
+    setPopupMessage(null);
+    if (targetFocusRef && targetFocusRef.current) {
+      targetFocusRef.current.focus();
+      targetFocusRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    setTargetFocusRef(null);
   };
 
   const handleStep3Next = () => {
@@ -345,7 +350,7 @@ export default function VignetteExpressWizard() {
             <h3 className="text-lg font-bold text-white">Notice</h3>
             <p className="text-sm text-slate-300">{popupMessage}</p>
             <button
-              onClick={() => setPopupMessage(null)}
+              onClick={handleUnderstandAndEdit}
               className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition"
             >
               Understand & Edit Weight
@@ -413,34 +418,29 @@ export default function VignetteExpressWizard() {
         </div>
       )}
 
-      {/* Requirement 1: Header strictly containing only Buy & Check options (No language dropdown on top) */}
+      {/* Header containing evenly spread Buy & Check buttons */}
       <header className="border-b border-slate-800 bg-slate-900/80 sticky top-0 backdrop-blur-md z-30">
-        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab('buy')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                activeTab === 'buy'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              Buy eVignette
-            </button>
-            <button
-              onClick={() => setActiveTab('check')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                activeTab === 'check'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              Check eVignette
-            </button>
-          </div>
-          <div className="text-xs font-semibold text-slate-500">
-            Official Bulgarian e-Vignette System
-          </div>
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <button
+            onClick={() => setActiveTab('buy')}
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition text-center ${
+              activeTab === 'buy'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            Buy eVignette
+          </button>
+          <button
+            onClick={() => setActiveTab('check')}
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition text-center ${
+              activeTab === 'check'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            Check eVignette
+          </button>
         </div>
       </header>
 
@@ -513,7 +513,6 @@ export default function VignetteExpressWizard() {
                   <p className="text-xs text-slate-400">Configure vehicle & trailer weight specs.</p>
                 </div>
 
-                {/* Requirement 2: Dropdowns vs Manual Input switch */}
                 {!isManualVehicle ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -575,7 +574,6 @@ export default function VignetteExpressWizard() {
                   </div>
                 )}
 
-                {/* Requirement 2: Toggle Link underneath make & model */}
                 <div>
                   <button
                     type="button"
@@ -621,7 +619,6 @@ export default function VignetteExpressWizard() {
 
                 {hasTrailer && (
                   <div className="space-y-3">
-                    {/* Requirement 3: Quick select trailer options */}
                     <label className="block text-xs font-semibold text-slate-300">Quick Select Trailer Preset</label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
@@ -659,26 +656,41 @@ export default function VignetteExpressWizard() {
                   </div>
                 )}
 
-                {/* Requirement 4: Calculation display banner */}
+                {/* Structured Stacked MTM Calculation Display */}
                 {hasTrailer && (vehicleMtmKg > 0 || trailerMtmKg > 0) && (
-                  <div className={`p-4 rounded-2xl border text-xs space-y-1.5 transition ${
+                  <div className={`p-4 rounded-2xl border text-xs space-y-2.5 transition ${
                     requiresTrailerVignette 
-                      ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' 
-                      : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
+                      ? 'bg-amber-950/30 border-amber-500/40' 
+                      : 'bg-emerald-950/30 border-emerald-500/40'
                   }`}>
-                    <div className="flex justify-between font-semibold">
-                      <span>Vehicle MTM ({vehicleMtmKg} kg) + Trailer MTM ({trailerMtmKg} kg):</span>
-                      <strong className="text-white font-mono text-sm">{totalCombinedWeightKg} kg</strong>
+                    <div className="flex justify-between items-center text-slate-300">
+                      <span>Vehicle MTM:</span>
+                      <strong className="text-white font-mono text-sm">{vehicleMtmKg} kg</strong>
                     </div>
-                    {requiresTrailerVignette ? (
-                      <p className="text-amber-300">
-                        ⚠️ Total combined weight exceeds <strong>3,500 kg</strong>. A separate trailer vignette is <strong>REQUIRED</strong>.
-                      </p>
-                    ) : (
-                      <p className="text-emerald-300">
-                        ✅ Total combined weight does not exceed 3,500 kg. No separate trailer vignette is required.
-                      </p>
-                    )}
+
+                    <div className="flex justify-between items-center text-slate-300">
+                      <span>Trailer MTM:</span>
+                      <strong className="text-white font-mono text-sm">{trailerMtmKg} kg</strong>
+                    </div>
+
+                    <hr className="border-slate-800/80 my-1" />
+
+                    <div className="flex justify-between items-center text-white font-bold">
+                      <span>Total Combined MTM:</span>
+                      <strong className="font-mono text-base">{totalCombinedWeightKg} kg</strong>
+                    </div>
+
+                    <div className="pt-1">
+                      {requiresTrailerVignette ? (
+                        <p className="text-amber-300 font-medium bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 text-center">
+                          ⚠️ Mandatory: A trailer vignette is <strong>REQUIRED</strong> because the total combined weight exceeds 3,500 kg.
+                        </p>
+                      ) : (
+                        <p className="text-emerald-300 font-medium bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 text-center">
+                          ✅ Not Mandatory: No trailer vignette is required because total combined weight is within 3,500 kg.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -725,7 +737,6 @@ export default function VignetteExpressWizard() {
                     ))}
                   </div>
 
-                  {/* Requirement 6: Weekend strict Friday picker */}
                   <div className="pt-2">
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Vehicle Activation Start Date</label>
                     {duration === 'weekend' ? (
@@ -840,7 +851,6 @@ export default function VignetteExpressWizard() {
                   <h2 className="text-xl font-bold text-white mb-1">Registration & Details</h2>
                 </div>
 
-                {/* Requirement 7: Updated full country list */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Vehicle Registration Country</label>
                   <select
@@ -915,7 +925,6 @@ export default function VignetteExpressWizard() {
                   />
                 </div>
 
-                {/* Requirement 8: Updated phone number text */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
                   <input
@@ -953,7 +962,6 @@ export default function VignetteExpressWizard() {
                   <h2 className="text-xl font-bold text-white mb-1">Checkout & Review</h2>
                 </div>
 
-                {/* Requirement 9: Separate lines for dates & individual rows for Email and Phone */}
                 <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-2.5 text-xs">
                   <div className="flex justify-between items-center text-slate-300">
                     <span>Vehicle Plate:</span>
