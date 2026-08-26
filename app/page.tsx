@@ -64,7 +64,6 @@ export default function VignetteExpressWizard() {
   // Popups & confirmation dialogs
   const [popupMessage, setPopupMessage] = useState<React.ReactNode | null>(null);
   const [targetFocusRef, setTargetFocusRef] = useState<React.RefObject<HTMLInputElement | null> | null>(null);
-  // const [targetFocusRef, setTargetFocusRef] = useState<React.RefObject<HTMLInputElement> | null>(null);
   const [confirmVehiclePlate, setConfirmVehiclePlate] = useState<boolean>(false);
   const [confirmTrailerPlate, setConfirmTrailerPlate] = useState<boolean>(false);
 
@@ -286,7 +285,8 @@ export default function VignetteExpressWizard() {
     }
     setPlateError('');
 
-    if (requiresTrailerVignette) {
+    // Require valid trailer plate if a trailer is attached, regardless of weight
+    if (hasTrailer) {
       const cleanTr = sanitizeLicensePlate(trailerPlate);
       const trVal = validateLicensePlateFormat(cleanTr);
       if (!trVal.valid) {
@@ -308,7 +308,8 @@ export default function VignetteExpressWizard() {
 
   const confirmVehiclePlateYes = () => {
     setConfirmVehiclePlate(false);
-    if (requiresTrailerVignette) {
+    // Ask for trailer confirmation whenever a trailer is attached
+    if (hasTrailer) {
       setConfirmTrailerPlate(true);
     } else {
       changeStep(4);
@@ -333,8 +334,8 @@ export default function VignetteExpressWizard() {
   const handleCheckVignetteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = sanitizeLicensePlate(checkPlate);
-    if (!clean) {
-      setCheckResult('Please enter a valid license plate number.');
+    if (!clean || clean.length < 2) {
+      setCheckResult('Please enter at least 2 characters for the license plate.');
       return;
     }
     setCheckResult(`Vignette status for plate ${clean}: ACTIVE until 31/12/2026 23:59.`);
@@ -468,7 +469,11 @@ export default function VignetteExpressWizard() {
               </button>
             </form>
             {checkResult && (
-              <div className="p-4 rounded-2xl bg-slate-800 border border-emerald-500/30 text-xs font-semibold text-emerald-400">
+              <div className={`p-4 rounded-2xl bg-slate-800 border text-xs font-semibold ${
+                checkResult.includes('at least 2 characters')
+                  ? 'border-rose-500/40 text-rose-400'
+                  : 'border-emerald-500/30 text-emerald-400'
+              }`}>
                 {checkResult}
               </div>
             )}
