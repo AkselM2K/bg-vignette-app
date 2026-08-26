@@ -246,6 +246,27 @@ export default function VignetteExpressWizard() {
 
   // Step 1 validation with modal confirmation before focus switch
   const handleStep1Next = () => {
+    // Validate Make & Model requirement
+    if (!isManualVehicle) {
+      if (!selectedMake.trim() || !selectedModel.trim()) {
+        setPopupMessage(
+          <span>
+            Please select both a valid <strong className="text-amber-400 font-bold underline">Vehicle Make</strong> and <strong className="text-amber-400 font-bold underline">Vehicle Model</strong> from the list, or use manual entry.
+          </span>
+        );
+        return;
+      }
+    } else {
+      if (!manualMake.trim() || !manualModel.trim()) {
+        setPopupMessage(
+          <span>
+            Please type in both your <strong className="text-amber-400 font-bold underline">Vehicle Make</strong> and <strong className="text-amber-400 font-bold underline">Vehicle Model</strong> manually.
+          </span>
+        );
+        return;
+      }
+    }
+
     if (vehicleMtmKg < 350) {
       setPopupMessage(
         <span>
@@ -354,7 +375,7 @@ export default function VignetteExpressWizard() {
               onClick={handleUnderstandAndEdit}
               className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition"
             >
-              Understand & Edit Weight
+              Understand & Fix
             </button>
           </div>
         </div>
@@ -521,7 +542,7 @@ export default function VignetteExpressWizard() {
                 {!isManualVehicle ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Select Make</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Select Make *</label>
                       <select
                         value={selectedMake}
                         onChange={(e) => handleMakeChange(e.target.value)}
@@ -537,7 +558,7 @@ export default function VignetteExpressWizard() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Select Model</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Select Model *</label>
                       <select
                         value={selectedModel}
                         onChange={(e) => handleModelChange(e.target.value)}
@@ -556,7 +577,7 @@ export default function VignetteExpressWizard() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Enter Make</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Enter Make *</label>
                       <input
                         type="text"
                         value={manualMake}
@@ -567,7 +588,7 @@ export default function VignetteExpressWizard() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Enter Model</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Enter Model *</label>
                       <input
                         type="text"
                         value={manualModel}
@@ -968,6 +989,13 @@ export default function VignetteExpressWizard() {
                 </div>
 
                 <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Vehicle Make & Model:</span>
+                    <strong className="text-white">
+                      {isManualVehicle ? `${manualMake} ${manualModel}` : `${selectedMake} ${selectedModel}`}
+                    </strong>
+                  </div>
+
                   <div className="flex justify-between items-center text-slate-300">
                     <span>Vehicle Plate:</span>
                     <strong className="text-emerald-400 font-mono text-sm">{sanitizeLicensePlate(licensePlate)} ({regCountry})</strong>
