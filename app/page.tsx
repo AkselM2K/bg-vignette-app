@@ -8,6 +8,13 @@ import {
   sanitizeLicensePlate,
   validateLicensePlateFormat,
 } from '@/lib/data';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize the Supabase Client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 type VignetteDuration = '1d' | 'weekend' | '1w' | '1m' | '3m' | '1y';
 
@@ -362,6 +369,78 @@ export default function VignetteExpressWizard() {
     setCheckResult(`Vignette status for plate ${clean}: ACTIVE until 31/12/2026 23:59.`);
   };
 
+  // Helper function to calculate expiry date based on start date and duration
+  const calculateExpiryDate = (startDateStr: string, dur: VignetteDuration): string => {
+    if (!startDateStr) return '';
+    const date = new Date(startDateStr);
+    
+    switch (dur) {
+      case '1d':
+        date.setDate(date.getDate() + 1);
+        break;
+      case 'weekend':
+        // Weekend vignettes start Friday 12:00 and are valid until Sunday 23:59.
+        // In clean date logic, we add 2 days to the Friday start to reach Sunday evening.
+        date.setDate(date.getDate() + 2);
+        break;
+      case '1w':
+        date.setDate(date.getDate() + 7);
+        break;
+      case '1m':
+        date.setMonth(date.getMonth() + 1);
+        break;
+      case '3m':
+        date.setMonth(date.getMonth() + 3);
+        break;
+      case '1y':
+        date.setFullYear(date.getFullYear() + 1);
+        break;
+      default:
+        date.setDate(date.getDate() + 7);
+    }
+    
+    return date.toISOString().split('T')[0];
+  };
+
+  // Database Save Logic for placing order directly into Supabase
+  const handleSaveOrder = async () => {
+    const mainExpiry = calculateExpiryDate(activationDate, duration);
+
+    const { data, error } = await supabase
+      .from('orders')
+      .insert([
+        {
+          license_plate: licensePlate,
+          reg_country: regCountry,
+          has_trailer: hasTrailer,
+          trailer_plate: hasTrailer ? trailerPlate : null,
+          trailer_reg_country: hasTrailer ? trailerRegCountry : null,
+          vehicle_mtm: parseInt(vehicleMtm, 10) || 0,
+          trailer_mtm: hasTrailer ? (parseInt(trailerMtm, 10) || 0) : 0,
+          duration: duration,
+          activation_date: activationDate,
+          trailer_duration: requiresTrailerVignette ? trailerDuration : null,
+          trailer_activation_date: requiresTrailerVignette ? trailerActivationDate : null,
+          email: email,
+          phone: phone,
+          total_price: parseFloat(totalEur),
+          payment_status: 'PENDING',
+          vehicle_make: isManualVehicle ? manualMake : selectedMake,
+          vehicle_model: isManualVehicle ? manualModel : selectedModel,
+          payment_reference: 'REF-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+          api_response_status: 'NOT_STARTED',
+          vignette_expiry_date: mainExpiry // Automatically calculated clean date string
+        },
+      ]);
+
+    if (error) {
+      console.error('Error saving order:', error.message);
+      alert('Failed to save order. Please try again.');
+    } else {
+      alert('Vignette order saved & processed successfully!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
       {/* Alert / Warning Popup */}
@@ -411,6 +490,7 @@ export default function VignetteExpressWizard() {
         </div>
       )}
 
+      {/* Trailer Confirmation Modal */}
       {confirmTrailerPlate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="bg-slate-900 border border-emerald-500/50 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
@@ -817,7 +897,7 @@ export default function VignetteExpressWizard() {
                             trailerDuration === item.id
                               ? 'border-amber-500 bg-amber-500/10 text-white'
                               : 'border-slate-800 bg-slate-800/40 text-slate-400 hover:border-slate-700'
-                          }`}
+                        }`}
                         >
                           <div className="font-bold text-sm">{item.name}</div>
                           <div className="text-xs text-amber-400 font-semibold mt-1">{item.price}</div>
@@ -1048,7 +1128,7 @@ export default function VignetteExpressWizard() {
                     Back
                   </button>
                   <button
-                    onClick={() => alert('Vignette order placed successfully!')}
+                    onClick={handleSaveOrder}
                     className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base rounded-2xl transition"
                   >
                     Pay €{totalEur} Now
