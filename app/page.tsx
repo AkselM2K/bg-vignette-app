@@ -405,6 +405,9 @@ export default function VignetteExpressWizard() {
   // Database Save Logic for placing order directly into Supabase
   const handleSaveOrder = async () => {
     const mainExpiry = calculateExpiryDate(activationDate, duration);
+    const trailerExpiry = hasTrailer && requiresTrailerVignette 
+      ? calculateExpiryDate(trailerActivationDate, trailerDuration) 
+      : null;
 
     const { data, error } = await supabase
       .from('orders')
@@ -429,7 +432,8 @@ export default function VignetteExpressWizard() {
           vehicle_model: isManualVehicle ? manualModel : selectedModel,
           payment_reference: 'REF-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
           api_response_status: 'NOT_STARTED',
-          vignette_expiry_date: mainExpiry // Automatically calculated clean date string
+          vignette_expiry_date: mainExpiry,
+          trailer_expiry_date: trailerExpiry
         },
       ]);
 
